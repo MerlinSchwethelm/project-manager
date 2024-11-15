@@ -18,4 +18,17 @@ trait EnumHelpers
 
         return $values;
     }
+
+    public static function labels(): array
+    {
+        $items = self::cases();
+        $labels = [];
+
+        foreach ($items as $item) {
+            $label = str_replace('_', ' ', $item->value);
+            $labels[] = ucwords($label);
+        }
+
+        return $labels;
+    }
 }
