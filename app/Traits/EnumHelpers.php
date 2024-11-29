@@ -19,6 +19,9 @@ trait EnumHelpers
         return $values;
     }
 
+    /**
+     * @return string[]
+     */
     public static function labels(): array
     {
         $items = self::cases();
@@ -30,5 +33,20 @@ trait EnumHelpers
         }
 
         return $labels;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function getKeyValuePairs(): array
+    {
+        $items = self::cases();
+        $keyValuePairs = [];
+
+        foreach ($items as $item) {
+            $keyValuePairs[$item->value] = ucwords(str_replace('_', ' ', $item->value));
+        }
+
+        return $keyValuePairs;
     }
 }

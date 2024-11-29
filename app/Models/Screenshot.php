@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Storage;
 
 /**
  * @property int $id
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $path
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read string $url
  * @property-read \App\Models\Ticket $ticket
  * @property-read \App\Models\User $user
  *
@@ -35,6 +37,17 @@ class Screenshot extends Model
         'path',
     ];
 
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::deleting(function ($screenshot) {
+            if ($screenshot->path && Storage::disk('public')->exists($screenshot->path)) {
+                Storage::disk('public')->delete($screenshot->path);
+            }
+        });
+    }
+
     /**
      * @return BelongsTo<User, $this>
      */
@@ -49,5 +62,10 @@ class Screenshot extends Model
     public function ticket(): BelongsTo
     {
         return $this->belongsTo(Ticket::class);
+    }
+
+    public function getUrlAttribute(): string
+    {
+        return Storage::disk('public')->url($this->path);
     }
 }

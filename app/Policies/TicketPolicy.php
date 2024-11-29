@@ -12,7 +12,9 @@ class TicketPolicy
      */
     public function viewAny(User $user): bool
     {
-        if (! Auth()->check()) return false;
+        if (! Auth()->check()) {
+            return false;
+        }
 
         return $user->isAdmin();
     }
@@ -22,7 +24,9 @@ class TicketPolicy
      */
     public function view(User $user, Ticket $ticket): bool
     {
-        if (! Auth()->check()) return false;
+        if (! Auth()->check()) {
+            return false;
+        }
 
         return $user->isAdmin() || $user->id === $ticket->user_id;
     }
@@ -40,7 +44,9 @@ class TicketPolicy
      */
     public function update(User $user, Ticket $ticket): bool
     {
-        if (! Auth()->check()) return false;
+        if (! Auth()->check()) {
+            return false;
+        }
 
         return $user->isAdmin() || $user->id === $ticket->user_id;
     }
@@ -50,7 +56,9 @@ class TicketPolicy
      */
     public function delete(User $user, Ticket $ticket): bool
     {
-        if (! Auth()->check()) return false;
+        if (! Auth()->check()) {
+            return false;
+        }
 
         return $user->isAdmin() || $user->id === $ticket->user_id;
     }
@@ -60,7 +68,9 @@ class TicketPolicy
      */
     public function changeStatus(User $user, Ticket $ticket): bool
     {
-        if (! Auth()->check()) return false;
+        if (! Auth()->check()) {
+            return false;
+        }
 
         return $user->isAdmin();
     }

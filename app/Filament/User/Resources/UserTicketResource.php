@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\User\Resources;
 
 use App\Enums\TicketPriorities;
 use App\Enums\TicketStatus;
-use App\Filament\Resources\TicketResource\Pages;
+use App\Filament\User\Resources\UserTicketResource\Pages;
 use App\Models\Screenshot;
 use App\Models\Ticket;
 use Filament\Forms;
@@ -12,53 +12,56 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
-class TicketResource extends Resource
+class UserTicketResource extends Resource
 {
     protected static ?string $model = Ticket::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    /**
+     * @return Builder<Model>
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->where('user_id', auth()->id());
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('title')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\Select::make('user_id')
-                    ->relationship('user', 'name')
+                    ->label('Title')
                     ->required(),
+                Forms\Components\DateTimePicker::make('deadline')
+                    ->label('Deadline')
+                    ->timezone('Europe/Berlin'),
                 Forms\Components\MarkdownEditor::make('description')
+                    ->label('Description')
                     ->required()
-                    ->columnSpanFull(),
+                    ->columnSpan('full'),
                 Forms\Components\Select::make('priority')
-                    ->default(TicketPriorities::LOW->value)
+                    ->label('Priority')
                     ->options(TicketPriorities::getKeyValuePairs())
                     ->selectablePlaceholder(false)
+                    ->default(TicketPriorities::LOW->value)
                     ->required(),
                 Forms\Components\Select::make('status')
-                    ->default(TicketStatus::OPEN->value)
+                    ->disabled()
+                    ->label('Status')
                     ->options(TicketStatus::getKeyValuePairs())
                     ->selectablePlaceholder(false)
-                    ->required(),
-                Forms\Components\DateTimePicker::make('deadline'),
-                Forms\Components\FileUpload::make('screenshots')
+                    ->default(TicketStatus::OPEN->value),
+                Forms\Components\FileUpload::make('screenshots.path')
                     ->label('Upload Screenshots')
                     ->multiple()
                     ->directory('screenshots')
                     ->acceptedFileTypes(['image/*'])
                     ->maxFiles(5)
                     ->disk('public')
-                    ->formatStateUsing(
-                        function (?Ticket $record) {
-                            if (! $record) {
-                                return [];
-                            }
-
-                            return $record->screenshots->map(fn (Screenshot $screenshot) => $screenshot->path)->toArray();
-                        }
-                    )
                     ->saveRelationshipsUsing(function (Ticket $ticket, array $state) {
                         $ticket->screenshots()->whereNotIn('path', collect($state)->pluck('path'))->each(function ($screenshot) {
                             $screenshot->delete();
@@ -70,7 +73,6 @@ class TicketResource extends Resource
                             ]);
                         }
                     }),
-
             ]);
     }
 
@@ -79,7 +81,8 @@ class TicketResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('title')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('priority')
                     ->formatStateUsing(function ($state) {
                         return match ($state) {
@@ -107,28 +110,18 @@ class TicketResource extends Resource
                     ->date('H:i d F Y')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('user.name')
-                    ->numeric()
-                    ->sortable(),
                 Tables\Columns\ImageColumn::make('screenshots.path')
                     ->label('Screenshots')
                     ->getStateUsing(function (Ticket $record) {
-                        return $record->screenshots->map(fn ($screenshot) => $screenshot->url)->toArray();
+                        return $record->screenshots->map(fn (Screenshot $screenshot) => $screenshot->url)->toArray();
                     }),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
+
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -147,9 +140,10 @@ class TicketResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListTickets::route('/'),
-            'create' => Pages\CreateTicket::route('/create'),
-            'edit' => Pages\EditTicket::route('/{record}/edit'),
+            'index' => Pages\ListUserTickets::route('/'),
+            'create' => Pages\CreateUserTicket::route('/create'),
+            'edit' => Pages\EditUserTicket::route('/{record}/edit'),
+            'view' => Pages\ViewUserTicket::route('/{record}/view'),
         ];
     }
 }

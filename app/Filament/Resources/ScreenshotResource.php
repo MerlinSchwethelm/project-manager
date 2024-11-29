@@ -3,15 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ScreenshotResource\Pages;
-use App\Filament\Resources\ScreenshotResource\RelationManagers;
 use App\Models\Screenshot;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ScreenshotResource extends Resource
 {
@@ -30,7 +27,7 @@ class ScreenshotResource extends Resource
                     ->relationship('ticket', 'title')
                     ->required(),
                 Forms\Components\FileUpload::make('path')
-                    ->required()
+                    ->required(),
             ]);
     }
 
