@@ -20,6 +20,8 @@ services:
             - '.:/var/www/html'
         networks:
             - sail
+            - proxy
+
         depends_on:
             - mysql
             - redis
@@ -42,6 +44,8 @@ services:
             - './vendor/laravel/sail/database/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
         networks:
             - sail
+            - proxy
+
         healthcheck:
             test:
                 - CMD
@@ -58,6 +62,8 @@ services:
             - 'sail-redis:/data'
         networks:
             - sail
+            - proxy
+
         healthcheck:
             test:
                 - CMD
@@ -75,6 +81,8 @@ services:
             - 'sail-meilisearch:/meili_data'
         networks:
             - sail
+            - proxy
+
         healthcheck:
             test:
                 - CMD
@@ -91,6 +99,8 @@ services:
             - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025'
         networks:
             - sail
+            - proxy
+
     selenium:
         image: selenium/standalone-chromium
         extra_hosts:
@@ -99,9 +109,12 @@ services:
             - '/dev/shm:/dev/shm'
         networks:
             - sail
+            - proxy
 networks:
     sail:
         driver: bridge
+    proxy:
+        driver: proxy_default
 volumes:
     sail-mysql:
         driver: local
