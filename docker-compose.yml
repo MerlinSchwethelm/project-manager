@@ -1,6 +1,5 @@
 services:
     laravel.test:
-
         build:
             context: './vendor/laravel/sail/runtimes/8.3'
             dockerfile: Dockerfile
@@ -10,7 +9,7 @@ services:
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
-            - '${APP_PORT:-80}:80'
+            - '${APP_PORT:-8081}:80'
             - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
         environment:
             LARAVEL_SAIL: 1
@@ -21,6 +20,8 @@ services:
             - '.:/var/www/html'
         networks:
             - sail
+
+
         depends_on:
             - mysql
             - redis
@@ -30,7 +31,7 @@ services:
     mysql:
         image: 'mysql/mysql-server:8.0'
         ports:
-            - '${FORWARD_DB_PORT:-3307}:3307'
+            - '${FORWARD_DB_PORT:-3307}:3306'
         environment:
             MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
             MYSQL_ROOT_HOST: '%'
@@ -43,6 +44,8 @@ services:
             - './vendor/laravel/sail/database/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
         networks:
             - sail
+
+
         healthcheck:
             test:
                 - CMD
@@ -59,6 +62,8 @@ services:
             - 'sail-redis:/data'
         networks:
             - sail
+
+
         healthcheck:
             test:
                 - CMD
@@ -76,6 +81,8 @@ services:
             - 'sail-meilisearch:/meili_data'
         networks:
             - sail
+
+
         healthcheck:
             test:
                 - CMD
@@ -92,6 +99,8 @@ services:
             - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025'
         networks:
             - sail
+
+
     selenium:
         image: selenium/standalone-chromium
         extra_hosts:
@@ -100,6 +109,7 @@ services:
             - '/dev/shm:/dev/shm'
         networks:
             - sail
+
 networks:
     sail:
         driver: bridge
